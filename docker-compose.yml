@@ -60,6 +60,191 @@ services:
     networks:
       - weather_net
 
+  # Backend API service
+  backend:
+    build:
+      context: ./back-end
+      dockerfile: Dockerfile
+    container_name: weather_backend
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/weather_platform
+      - REDIS_URL=redis://redis:6379/0
+      - S3_ENDPOINT_URL=http://minio:9000
+      - S3_ACCESS_KEY_ID=minioadmin
+      - S3_SECRET_ACCESS_KEY=minioadmin
+      - S3_BUCKET_NAME=weather-media
+      - S3_REGION=us-east-1
+      - S3_USE_SSL=false
+      - ENVIRONMENT=production
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - weather_net
+
+  # Ingestion worker - polls external sources and pushes to Redis Streams
+  ingestion-worker:
+    build:
+      context: ./back-end
+      dockerfile: Dockerfile
+    container_name: weather_ingestion_worker
+    restart: unless-stopped
+    command: ["python", "-m", "app.workers.run_ingestion_worker"]
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/weather_platform
+      - REDIS_URL=redis://redis:6379/0
+      - S3_ENDPOINT_URL=http://minio:9000
+      - S3_ACCESS_KEY_ID=minioadmin
+      - S3_SECRET_ACCESS_KEY=minioadmin
+      - S3_BUCKET_NAME=weather-media
+      - S3_REGION=us-east-1
+      - S3_USE_SSL=false
+      - ENVIRONMENT=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - weather_net
+
+  # Observation worker - processes weather observations
+  observation-worker:
+    build:
+      context: ./back-end
+      dockerfile: Dockerfile
+    container_name: weather_observation_worker
+    restart: unless-stopped
+    command: ["python", "-m", "app.workers.run_observation_worker"]
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/weather_platform
+      - REDIS_URL=redis://redis:6379/0
+      - S3_ENDPOINT_URL=http://minio:9000
+      - S3_ACCESS_KEY_ID=minioadmin
+      - S3_SECRET_ACCESS_KEY=minioadmin
+      - S3_BUCKET_NAME=weather-media
+      - S3_REGION=us-east-1
+      - S3_USE_SSL=false
+      - ENVIRONMENT=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - weather_net
+
+  # Evidence worker - processes digital evidence (images, videos)
+  evidence-worker:
+    build:
+      context: ./back-end
+      dockerfile: Dockerfile
+    container_name: weather_evidence_worker
+    restart: unless-stopped
+    command: ["python", "-m", "app.workers.run_evidence_worker"]
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/weather_platform
+      - REDIS_URL=redis://redis:6379/0
+      - S3_ENDPOINT_URL=http://minio:9000
+      - S3_ACCESS_KEY_ID=minioadmin
+      - S3_SECRET_ACCESS_KEY=minioadmin
+      - S3_BUCKET_NAME=weather-media
+      - S3_REGION=us-east-1
+      - S3_USE_SSL=false
+      - ENVIRONMENT=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - weather_net
+
+  # Dispatcher - 5-stage orchestration pipeline
+  dispatcher:
+    build:
+      context: ./back-end
+      dockerfile: Dockerfile
+    container_name: weather_dispatcher
+    restart: unless-stopped
+    command: ["python", "-m", "app.workers.run_dispatcher"]
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/weather_platform
+      - REDIS_URL=redis://redis:6379/0
+      - S3_ENDPOINT_URL=http://minio:9000
+      - S3_ACCESS_KEY_ID=minioadmin
+      - S3_SECRET_ACCESS_KEY=minioadmin
+      - S3_BUCKET_NAME=weather-media
+      - S3_REGION=us-east-1
+      - S3_USE_SSL=false
+      - ENVIRONMENT=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - weather_net
+
+  # Outbox worker - delivers real-time events to Redis Streams for SSE
+  outbox-worker:
+    build:
+      context: ./back-end
+      dockerfile: Dockerfile
+    container_name: weather_outbox_worker
+    restart: unless-stopped
+    command: ["python", "-m", "app.workers.run_outbox_worker"]
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/weather_platform
+      - REDIS_URL=redis://redis:6379/0
+      - S3_ENDPOINT_URL=http://minio:9000
+      - S3_ACCESS_KEY_ID=minioadmin
+      - S3_SECRET_ACCESS_KEY=minioadmin
+      - S3_BUCKET_NAME=weather-media
+      - S3_REGION=us-east-1
+      - S3_USE_SSL=false
+      - ENVIRONMENT=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - weather_net
+
+  # Scheduler - triggers periodic ingestion runs
+  scheduler:
+    build:
+      context: ./back-end
+      dockerfile: Dockerfile
+    container_name: weather_scheduler
+    restart: unless-stopped
+    command: ["python", "-m", "app.workers.run_scheduler"]
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/weather_platform
+      - REDIS_URL=redis://redis:6379/0
+      - S3_ENDPOINT_URL=http://minio:9000
+      - S3_ACCESS_KEY_ID=minioadmin
+      - S3_SECRET_ACCESS_KEY=minioadmin
+      - S3_BUCKET_NAME=weather-media
+      - S3_REGION=us-east-1
+      - S3_USE_SSL=false
+      - ENVIRONMENT=production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - weather_net
+
 volumes:
   postgres_data:
     name: weather_postgres_data

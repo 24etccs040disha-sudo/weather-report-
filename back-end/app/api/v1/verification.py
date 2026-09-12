@@ -10,6 +10,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth import require_role, ROLES_VERIFICATION
 from app.db.session import get_db
 from app.schemas.incident import IncidentListResponse, IncidentOperatorDetailResponse
 from app.schemas.report import (
@@ -31,6 +32,7 @@ router = APIRouter()
     status_code=status.HTTP_200_OK,
     summary="Retrieve Operator Verification Queue",
     description="Priority-ranked queue of unverified reports ordered by severity and credibility.",
+    dependencies=[Depends(require_role(*ROLES_VERIFICATION))],
 )
 async def get_verification_queue(
     page: int = Query(default=1, ge=1, description="Page number starting at 1"),
@@ -80,6 +82,7 @@ async def get_verification_queue(
     status_code=status.HTTP_200_OK,
     summary="Authorize and Verify Incident",
     description="Updates verification status to VERIFIED and records an immutable audit event.",
+    dependencies=[Depends(require_role(*ROLES_VERIFICATION))],
 )
 async def verify_incident(
     id: str = Path(..., min_length=3, max_length=64, description="Incident UUID or Tracking ID"),
@@ -154,6 +157,7 @@ async def verify_incident(
     status_code=status.HTTP_200_OK,
     summary="Reject Incident as False / Hoax / Inaccurate",
     description="Updates verification status to REJECTED with reason code and records audit event.",
+    dependencies=[Depends(require_role(*ROLES_VERIFICATION))],
 )
 async def reject_incident(
     id: str = Path(..., min_length=3, max_length=64, description="Incident UUID or Tracking ID"),
@@ -228,6 +232,7 @@ async def reject_incident(
     status_code=status.HTTP_200_OK,
     summary="Mark Incident as Duplicate",
     description="Updates verification status to DUPLICATE with reference to primary incident.",
+    dependencies=[Depends(require_role(*ROLES_VERIFICATION))],
 )
 async def mark_duplicate_incident(
     id: str = Path(..., min_length=3, max_length=64, description="Incident UUID or Tracking ID"),
@@ -302,6 +307,7 @@ async def mark_duplicate_incident(
     status_code=status.HTTP_200_OK,
     summary="Mark Incident Under Active Review",
     description="Updates verification status to UNDER_REVIEW.",
+    dependencies=[Depends(require_role(*ROLES_VERIFICATION))],
 )
 async def review_incident(
     id: str = Path(..., min_length=3, max_length=64, description="Incident UUID or Tracking ID"),
