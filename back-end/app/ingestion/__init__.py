@@ -18,6 +18,7 @@ from app.ingestion.schemas import (
     NormalizedObservationEvent,
     RawIngestionEvent,
 )
+from app.ingestion.social_hashtag_adapter import SocialHashtagAdapter
 
 # Register standard adapters
 adapter_registry.register_factory("IMD_NOWCAST", lambda: IMDNowcastAdapter())
@@ -25,6 +26,7 @@ adapter_registry.register_factory("NDMA_SACHET", lambda: NDMASachetAdapter())
 adapter_registry.register_factory("CWC_NWDP", lambda: CWCTelemetryAdapter())
 adapter_registry.register_factory("GDELT_DOC", lambda: GDELTNewsAdapter())
 adapter_registry.register_factory("MASTODON_PUBLIC", lambda: MastodonSocialAdapter())
+adapter_registry.register_factory("SOCIAL_HASHTAG", lambda: SocialHashtagAdapter())
 
 __all__ = [
     "BaseIngestionAdapter",
@@ -34,6 +36,7 @@ __all__ = [
     "CWCTelemetryAdapter",
     "GDELTNewsAdapter",
     "MastodonSocialAdapter",
+    "SocialHashtagAdapter",
     "EventNormalizer",
     "RawIngestionEvent",
     "NormalizedIngestionEvent",

@@ -87,6 +87,19 @@ class Settings(BaseSettings):
     MASTODON_POLL_INTERVAL_SECONDS: float = 30.0
     MASTODON_MIN_REQUEST_INTERVAL_SECONDS: float = 1.0
 
+    # Social Hashtag Adapter Configuration (#IMD and weather hashtags)
+    SOCIAL_API_ENDPOINT: str = "https://api.twitter.com/2"
+    SOCIAL_API_KEY: str = ""
+    SOCIAL_HASHTAGS: List[str] = [
+        "imd", "weather", "flood", "flooding", "waterlogging",
+        "cyclone", "storm", "thunderstorm", "lightning",
+        "heatwave", "heat", "monsoon", "rain", "heavyrain",
+        "cloudburst", "landslide", "drought", "fog",
+        "duststorm", "hail", "hailstorm", "strongwind", "gale"
+    ]
+    SOCIAL_MAX_RESULTS: int = 100
+    SOCIAL_REQUEST_TIMEOUT_SECONDS: float = 15.0
+
     # AI & Semantic Intelligence / Deduplication Engine (v1 Initial Parameters)
     DUPLICATE_SEMANTIC_METHOD: str = "sparse_tfidf_ngram_v1"
     EMBEDDING_MODEL_NAME: str = "BAAI/bge-small-en-v1.5"  # Configured optional dense backend
