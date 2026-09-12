@@ -18,6 +18,7 @@ from app.schemas.evidence import IncidentEvidenceListResponse
 from app.schemas.incident import (
     IncidentDetailOperator,
     IncidentDetailResponse,
+    IncidentIntelligenceDetailResponse,
     IncidentListResponse,
     IncidentOperatorDetailResponse,
 )
@@ -357,6 +358,52 @@ async def get_incident_intelligence_status(
         )
 
     return IncidentIntelligenceStatusResponse(
+        success=True,
+        data=data,
+        meta={
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "request_id": f"req_{uuid.uuid4().hex[:12]}",
+        },
+    )
+
+
+@router.get(
+    "/{id}/intelligence/full",
+    response_model=IncidentIntelligenceDetailResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve Full Intelligence Breakdown for Verdict Inspector",
+    description="Fetch complete transparency package: duplicate cluster, digital evidence, physical observations, credibility breakdown, and provenance.",
+)
+async def get_full_incident_intelligence(
+    id: str = Path(..., min_length=3, max_length=64, description="Incident UUID or Tracking ID"),
+    db: AsyncSession = Depends(get_db),
+) -> IncidentIntelligenceDetailResponse:
+    """Retrieve full intelligence breakdown for transparent verdict inspection."""
+    clean_id = id.strip()
+    if not ID_PATTERN.match(clean_id):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "code": "VALIDATION_ERROR",
+                "message": f"Malformed identifier: {id}",
+                "details": [],
+            },
+        )
+
+    data = await incident_query_service.get_full_incident_intelligence(
+        session=db, identifier=clean_id
+    )
+    if data is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "code": "RESOURCE_NOT_FOUND",
+                "message": f"Incident not found: {clean_id}",
+                "details": [],
+            },
+        )
+
+    return IncidentIntelligenceDetailResponse(
         success=True,
         data=data,
         meta={

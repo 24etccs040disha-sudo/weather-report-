@@ -10,7 +10,8 @@ import { LiveMapContainer } from '@/features/map/LiveMapContainer';
 import { incidentApi } from '@/services/incidentApi';
 import { incidentKeys } from '@/lib/queryKeys';
 import { geoJSONToMapPoints, MapIncidentPoint } from '@/features/map/adapters';
-import { Info, AlertTriangle, Loader2 } from 'lucide-react';
+import { Info, AlertTriangle, Loader2, Radar } from 'lucide-react';
+import { IMDRadarOverlay } from '@/features/map/IMDRadarOverlay';
 
 const REGION_BOUNDS: Record<string, { center: [number, number]; zoom: number; bbox?: string }> = {
   ALL: {
@@ -63,6 +64,7 @@ export const LiveMapPage: React.FC = () => {
   });
 
   const [selectedPoint, setSelectedPoint] = useState<MapIncidentPoint | null>(null);
+  const [radarActive, setRadarActive] = useState(true);
 
   // Compute hours_ago for GeoJSON query
   const geoHoursAgo = useMemo(() => {
@@ -152,11 +154,13 @@ export const LiveMapPage: React.FC = () => {
       <main className="relative flex-1 w-full overflow-hidden">
         {/* Fullscreen Map Layer */}
         <LiveMapContainer
-          reports={mapPoints}
-          selectedReport={selectedPoint}
-          onSelectReport={(point) => setSelectedPoint(point)}
-          targetRegion={targetRegion}
-        />
+                  reports={mapPoints}
+                  selectedReport={selectedPoint}
+                  onSelectReport={(point) => setSelectedPoint(point)}
+                  targetRegion={targetRegion}
+                >
+                  <IMDRadarOverlay active={radarActive} />
+                </LiveMapContainer>
 
         {/* Floating Top Header & Filter Controls */}
         <div className="absolute top-4 left-4 z-[900] flex flex-col space-y-3 pointer-events-none max-w-[calc(100vw-2rem)] sm:max-w-xl">
@@ -169,8 +173,19 @@ export const LiveMapPage: React.FC = () => {
         </div>
 
         {/* Floating Data Status Banner */}
-        <div className="absolute top-4 right-4 z-[900] hidden lg:block pointer-events-auto">
-          <div className="flex items-center space-x-2 rounded-xl border border-slate-200/80 bg-white/95 px-3 py-2 text-xs font-semibold text-slate-700 shadow-md backdrop-blur-md">
+                <div className="absolute top-4 right-4 z-[900] hidden lg:block pointer-events-auto">
+                  <div className="flex items-center space-x-2 rounded-xl border border-slate-200/80 bg-white/95 px-3 py-2 text-xs font-semibold text-slate-700 shadow-md backdrop-blur-md">
+                    <button
+                      type="button"
+                      onClick={() => setRadarActive((v) => !v)}
+                      aria-pressed={radarActive}
+                      className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold transition-colors ${
+                        radarActive ? 'bg-sky-100 text-sky-700' : 'bg-slate-100 text-slate-500'
+                      }`}
+                    >
+                      <Radar className="h-3.5 w-3.5" />
+                      Radar {radarActive ? 'ON' : 'OFF'}
+                    </button>
             {isGeoLoading ? (
               <>
                 <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />

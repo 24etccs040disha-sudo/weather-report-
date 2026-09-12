@@ -75,6 +75,106 @@ class IncidentCorroborationCounts(BaseModel):
     is_cluster_representative: bool = True
 
 
+# --- Verdict Inspector Full Intelligence Schemas ---
+
+class DuplicateClusterMemberSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: uuid.UUID
+    tracking_id: str
+    category: str
+    verification_status: str
+    credibility_score: float
+    is_primary: bool
+    occurred_at: datetime
+
+
+class DuplicateClusterSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    cluster_id: uuid.UUID
+    member_count: int
+    members: List[DuplicateClusterMemberSchema] = Field(default_factory=list)
+    similarity_matrix: List[Dict[str, Any]] = Field(default_factory=list)
+
+
+class HashMatchSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    incident_id: str
+    similarity: float
+    is_exact_match: bool
+    matched_at: datetime
+
+
+class ReverseSearchResultSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    source: str
+    description: str
+    url: Optional[str] = None
+    similarity: Optional[float] = None
+
+
+class LinkedEvidenceItemSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: uuid.UUID
+    type: str
+    sha256_hash: str
+    url: Optional[str] = None
+    preview_url: Optional[str] = None
+    width: Optional[int] = None
+    height: Optional[int] = None
+    duration: Optional[int] = None
+    hash_matches: List[HashMatchSchema] = Field(default_factory=list)
+    reverse_search_results: List[ReverseSearchResultSchema] = Field(default_factory=list)
+
+
+class PhysicalObservationSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    station_id: str
+    station_name: str
+    distance_km: float
+    direction: Optional[str] = None
+    corroboration: str
+    temperature: Optional[float] = None
+    humidity: Optional[float] = None
+    rainfall_24h: Optional[float] = None
+    wind_speed: Optional[float] = None
+    pressure: Optional[float] = None
+    water_level: Optional[float] = None
+    threshold_comparison: Optional[Dict[str, Any]] = None
+    observed_at: datetime
+
+
+class CredibilitySummarySchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    score: float
+    label: str
+    explanation_text: Optional[str] = None
+    positive_drivers: List[str] = Field(default_factory=list)
+    negative_drivers: List[str] = Field(default_factory=list)
+    uncertainty_flags: List[str] = Field(default_factory=list)
+
+
+class ProvenanceSummarySchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    __root__: Dict[str, int]
+
+
+class IncidentIntelligenceDetailData(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    incident_id: uuid.UUID
+    verification_probability: Optional[float] = None
+    duplicate_cluster: Optional[DuplicateClusterSchema] = None
+    linked_evidence: List[LinkedEvidenceItemSchema] = Field(default_factory=list)
+    physical_observations: List[PhysicalObservationSchema] = Field(default_factory=list)
+    credibility: Optional[CredibilitySummarySchema] = None
+    provenance_summary: Optional[ProvenanceSummarySchema] = None
+
+
+class IncidentIntelligenceDetailResponse(BaseModel):
+    success: bool = True
+    data: IncidentIntelligenceDetailData
+    meta: dict = Field(default_factory=dict)
+
+
 class IncidentSummaryResponse(BaseModel):
     """Compact incident summary for feed lists, tables, and map overlays."""
 

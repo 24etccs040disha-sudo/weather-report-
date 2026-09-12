@@ -9,6 +9,7 @@ import {
   IncidentDetailPublic,
   IncidentEvidenceItemData,
   IncidentIntelligenceData,
+  IncidentIntelligence,
   IncidentListQueryParams,
   IncidentObservationItemData,
   IncidentSummary,
@@ -91,6 +92,17 @@ export const incidentApi = {
   ): Promise<ApiResponse<IncidentIntelligenceData>> {
     const cleanId = encodeURIComponent(id.trim());
     return apiClient<ApiResponse<IncidentIntelligenceData>>(`/incidents/${cleanId}/intelligence`, { signal });
+  },
+
+  /**
+   * Retrieve full intelligence breakdown for Verdict Inspector (duplicates, evidence, sensors, credibility, provenance).
+   */
+  async getFullIncidentIntelligence(
+    id: string,
+    signal?: AbortSignal
+  ): Promise<ApiResponse<IncidentIntelligence>> {
+    const cleanId = encodeURIComponent(id.trim());
+    return apiClient<ApiResponse<IncidentIntelligence>>(`/incidents/${cleanId}/intelligence/full`, { signal });
   },
 
   /**

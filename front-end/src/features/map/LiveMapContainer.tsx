@@ -18,6 +18,7 @@ export interface LiveMapContainerProps {
   onSelectReport: (report: MapIncidentPoint) => void;
   targetRegion?: RegionInfo;
   onBoundsChange?: (bbox: string) => void;
+  children?: React.ReactNode;
 }
 
 interface IncidentLocationGroup {
@@ -209,6 +210,7 @@ export const LiveMapContainer: React.FC<LiveMapContainerProps> = ({
   onSelectReport,
   targetRegion,
   onBoundsChange,
+  children,
 }) => {
   const defaultCenter: [number, number] = [20.5937, 78.9629];
   const defaultZoom = 5;
@@ -282,20 +284,23 @@ export const LiveMapContainer: React.FC<LiveMapContainerProps> = ({
 
           return (
             <Marker
-              key={group.key}
-              position={[group.latitude, group.longitude]}
-              icon={
-                isCluster
-                  ? createClusterIcon(group.reports.length, group.hasSevere, isSelected)
-                  : createHazardIcon(group.latestReport.severity, isSelected)
-              }
-              eventHandlers={{
-                click: () => onSelectReport(group.latestReport),
-              }}
-            />
-          );
-        })}
-      </MapContainer>
+                          key={group.key}
+                          position={[group.latitude, group.longitude]}
+                          icon={
+                            isCluster
+                              ? createClusterIcon(group.reports.length, group.hasSevere, isSelected)
+                              : createHazardIcon(group.latestReport.severity, isSelected)
+                          }
+                          eventHandlers={{
+                            click: () => onSelectReport(group.latestReport),
+                          }}
+                        />
+                      );
+                    })}
+
+                    {/* Radar / overlay layers passed as children */}
+                    {children}
+                  </MapContainer>
     </div>
   );
 };

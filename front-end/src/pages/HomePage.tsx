@@ -7,6 +7,7 @@ import { ActiveAdvisoriesCard } from '@/features/home/ActiveAdvisoriesCard';
 import { LiveEventMapPreview } from '@/features/home/LiveEventMapPreview';
 import { ProcessFlowCard } from '@/features/home/ProcessFlowCard';
 import { RecentReportsTable } from '@/features/home/RecentReportsTable';
+import { LiveWeatherTicker } from '@/features/home/LiveWeatherTicker';
 
 export const HomePage: React.FC = () => {
   return (
@@ -18,6 +19,11 @@ export const HomePage: React.FC = () => {
       <main className="flex-1">
         {/* Hero Section matching Stitch */}
         <HeroSection />
+
+        {/* Live #IMD Social Weather Capture ticker */}
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pt-4">
+          <LiveWeatherTicker />
+        </div>
 
         {/* Content Section */}
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
